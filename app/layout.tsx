@@ -6,6 +6,16 @@ import { Sidebar } from "@/components/layout/sidebar";
 export const metadata: Metadata = {
   title: "Asset Management Dashboard",
   description: "Personal asset management PWA inspired by Topstep",
+  manifest: "/manifest.json",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+  },
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f172a" },
+  ],
 };
 
 export default function RootLayout({
