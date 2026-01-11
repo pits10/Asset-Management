@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Wallet, Receipt } from "lucide-react";
+import { LayoutDashboard, Wallet, Receipt, Coins, Target, LineChart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 
@@ -21,6 +21,21 @@ const navigationItems = [
     name: "Expenses",
     href: "/expenses",
     icon: Receipt,
+  },
+  {
+    name: "Income",
+    href: "/income",
+    icon: Coins,
+  },
+  {
+    name: "Plan",
+    href: "/plan",
+    icon: Target,
+  },
+  {
+    name: "Forecast",
+    href: "/forecast",
+    icon: LineChart,
   },
 ];
 
