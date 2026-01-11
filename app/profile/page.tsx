@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChevronDown, ChevronUp, Calendar } from "lucide-react";
+import { ChevronDown, ChevronUp, Calendar, Sparkles, Trash2 } from "lucide-react";
 import { useMonthlyStates } from "@/lib/hooks/useMonthlyStates";
 import { formatCurrency, formatCompactCurrency } from "@/lib/utils/projection";
+import { generateDemoData, clearAllData } from "@/lib/utils/demo-data";
 import type { MonthlyState } from "@/types";
 
 export default function ProfilePage() {
-  const { states, loading } = useMonthlyStates();
+  const { states, loading, refresh } = useMonthlyStates();
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [sortedStates, setSortedStates] = useState<MonthlyState[]>([]);
 
@@ -28,6 +29,18 @@ export default function ProfilePage() {
     const [year, monthNum] = month.split("-");
     const date = new Date(parseInt(year), parseInt(monthNum) - 1);
     return date.toLocaleDateString("en-US", { year: "numeric", month: "short" });
+  };
+
+  const handleGenerateDemo = async () => {
+    await generateDemoData();
+    await refresh();
+  };
+
+  const handleClearData = async () => {
+    if (confirm("Are you sure you want to delete all data? This cannot be undone.")) {
+      await clearAllData();
+      await refresh();
+    }
   };
 
   return (
@@ -152,6 +165,48 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Data Management */}
+      {sortedStates.length === 0 && !loading && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-medium text-foreground">Quick Start</h2>
+
+          <div className="rounded-lg border border-accent-growth/20 bg-accent-growth/5 p-5">
+            <div className="flex items-start gap-3">
+              <Sparkles className="h-5 w-5 text-accent-growth flex-shrink-0 mt-0.5" />
+              <div className="flex-1 space-y-3">
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    Try Demo Data
+                  </p>
+                  <p className="text-xs text-foreground-muted mt-1">
+                    Generate 6 months of sample data to explore the app
+                  </p>
+                </div>
+                <button
+                  onClick={handleGenerateDemo}
+                  className="w-full rounded-lg bg-accent-growth px-4 py-2.5 text-sm font-medium text-background hover:opacity-90 transition-opacity"
+                >
+                  Generate Demo Data
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Clear Data (only show if there's data) */}
+      {sortedStates.length > 0 && (
+        <div className="rounded-lg border border-border bg-card p-5">
+          <button
+            onClick={handleClearData}
+            className="w-full flex items-center justify-center gap-2 rounded-lg border border-accent-negative/20 px-4 py-2.5 text-sm font-medium text-accent-negative hover:bg-accent-negative/10 transition-colors"
+          >
+            <Trash2 className="h-4 w-4" />
+            Clear All Data
+          </button>
+        </div>
+      )}
 
       {/* App Info */}
       <div className="rounded-lg border border-border bg-card p-4 text-center">
