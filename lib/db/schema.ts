@@ -7,6 +7,9 @@ import type {
   AppSettings,
   InvestmentPlan,
   MonthlyState,
+  UserProfile,
+  CashflowEntry,
+  Scenario,
 } from '@/types';
 
 // Dexie Database Class
@@ -18,6 +21,9 @@ class AssetManagementDB extends Dexie {
   settings!: EntityTable<AppSettings, 'id'>;
   investmentPlans!: EntityTable<InvestmentPlan, 'id'>;
   monthlyStates!: EntityTable<MonthlyState, 'id'>;
+  userProfile!: EntityTable<UserProfile, 'id'>;
+  cashflowEntries!: EntityTable<CashflowEntry, 'id'>;
+  scenarios!: EntityTable<Scenario, 'id'>;
 
   constructor() {
     super('AssetManagementDB');
@@ -133,6 +139,20 @@ class AssetManagementDB extends Dexie {
       settings: 'id',
       investmentPlans: 'id, assetCategory, createdAt, updatedAt',
       monthlyStates: 'id, month, createdAt, updatedAt', // New table for monthly aggregated state
+    });
+
+    // Version 4: Add UserProfile, CashflowEntries, and Scenarios tables for full Wealth OS
+    this.version(4).stores({
+      assets: 'id, category, updatedAt, createdAt',
+      expenses: 'id, type, category, date, createdAt',
+      incomes: 'id, type, source, date, createdAt',
+      dailySnapshots: 'id, date, createdAt',
+      settings: 'id',
+      investmentPlans: 'id, assetCategory, createdAt, updatedAt',
+      monthlyStates: 'id, month, createdAt, updatedAt',
+      userProfile: 'id, createdAt, updatedAt',           // User profile & onboarding
+      cashflowEntries: 'id, month, createdAt, updatedAt', // Cashflow tracking by month
+      scenarios: 'id, name, createdAt, updatedAt',        // What-if scenarios
     });
   }
 }
