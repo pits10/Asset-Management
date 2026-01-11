@@ -37,7 +37,7 @@ export function AssetFormDialog({ open, onOpenChange, onSubmit, initialData }: A
   useEffect(() => {
     if (initialData) {
       setCategory(initialData.category);
-      setFormData(initialData as Record<string, string | number>);
+      setFormData(initialData as unknown as Record<string, string | number>);
     } else {
       setCategory('deposit');
       setFormData({});
@@ -57,7 +57,7 @@ export function AssetFormDialog({ open, onOpenChange, onSubmit, initialData }: A
           balance: Number(formData.balance) || 0,
           financialInstitution: formData.financialInstitution as string,
           accountName: formData.accountName as string,
-        };
+        } as Omit<Asset, 'id' | 'createdAt' | 'updatedAt'>;
       } else if (category === 'stock') {
         assetData = {
           category: 'stock',
@@ -68,7 +68,7 @@ export function AssetFormDialog({ open, onOpenChange, onSubmit, initialData }: A
           stockName: formData.stockName as string,
           market: (formData.market as 'japan' | 'us' | 'other') || 'other',
           currency: (formData.currency as 'JPY' | 'USD') || 'JPY',
-        };
+        } as Omit<Asset, 'id' | 'createdAt' | 'updatedAt'>;
       } else if (category === 'fund') {
         assetData = {
           category: 'fund',
@@ -77,7 +77,7 @@ export function AssetFormDialog({ open, onOpenChange, onSubmit, initialData }: A
           averagePrice: formData.averagePrice ? Number(formData.averagePrice) : undefined,
           currentValue: formData.currentValue ? Number(formData.currentValue) : undefined,
           fundType: (formData.fundType as 'mutualFund' | 'etf') || undefined,
-        };
+        } as Omit<Asset, 'id' | 'createdAt' | 'updatedAt'>;
       } else if (category === 'crypto') {
         assetData = {
           category: 'crypto',
@@ -86,7 +86,7 @@ export function AssetFormDialog({ open, onOpenChange, onSubmit, initialData }: A
           averagePrice: formData.averagePrice ? Number(formData.averagePrice) : undefined,
           currentValue: formData.currentValue ? Number(formData.currentValue) : undefined,
           exchange: formData.exchange as string,
-        };
+        } as Omit<Asset, 'id' | 'createdAt' | 'updatedAt'>;
       } else {
         // employeeStock
         assetData = {
@@ -99,7 +99,7 @@ export function AssetFormDialog({ open, onOpenChange, onSubmit, initialData }: A
           ticker: formData.ticker as string,
           esppDiscountRate: formData.esppDiscountRate ? Number(formData.esppDiscountRate) : undefined,
           esppCompanyContribution: formData.esppCompanyContribution ? Number(formData.esppCompanyContribution) : undefined,
-        };
+        } as Omit<Asset, 'id' | 'createdAt' | 'updatedAt'>;
       }
 
       await onSubmit(assetData);
@@ -113,11 +113,6 @@ export function AssetFormDialog({ open, onOpenChange, onSubmit, initialData }: A
 
   const updateField = (key: string, value: string | number) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const resetForm = () => {
-    setFormData({});
-    setCategory('deposit');
   };
 
   return (

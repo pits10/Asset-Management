@@ -20,7 +20,7 @@ export function AssetAllocationChart({ data }: AssetAllocationChartProps) {
   const total = Object.values(data).reduce((sum, value) => sum + value, 0);
 
   const chartData = Object.entries(data)
-    .filter(([_, value]) => value > 0)
+    .filter(([, value]) => value > 0)
     .map(([category, value]) => ({
       category: category as AssetCategory,
       value,
