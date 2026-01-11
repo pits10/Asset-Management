@@ -9,7 +9,7 @@ import {
   calculateCashRunway,
   calculateSavingsRate,
 } from "@/lib/utils/direction";
-import { formatCurrency, formatCompactCurrency } from "@/lib/utils/projection";
+import { formatCompactCurrency } from "@/lib/utils/projection";
 import type { MonthlyState } from "@/types";
 
 export default function OverviewPage() {

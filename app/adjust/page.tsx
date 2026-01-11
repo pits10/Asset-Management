@@ -33,7 +33,6 @@ export default function AdjustPage() {
   // Calculations
   const monthlyIncomeNum = parseFloat(monthlyIncome) || 0;
   const annualBonusNum = parseFloat(annualBonus) || 0;
-  const annualGrowthNum = parseFloat(annualGrowth) || 0;
   const monthlyLivingCostNum = parseFloat(monthlyLivingCost) || 0;
 
   const totalAnnualIncome = monthlyIncomeNum * 12 + annualBonusNum;

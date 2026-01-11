@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp, Calendar, Sparkles, Trash2 } from "lucide-react";
 import { useMonthlyStates } from "@/lib/hooks/useMonthlyStates";
-import { formatCurrency, formatCompactCurrency } from "@/lib/utils/projection";
+import { formatCompactCurrency } from "@/lib/utils/projection";
 import { generateDemoData, clearAllData } from "@/lib/utils/demo-data";
 import type { MonthlyState } from "@/types";
 
