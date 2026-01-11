@@ -56,7 +56,7 @@ export default function OverviewPage() {
         <h1 className="text-2xl font-medium text-foreground">
           {getGreeting()}, {profile?.name || 'User'}
         </h1>
-        <p className="text-sm text-foreground-secondary">Here's your financial snapshot</p>
+        <p className="text-sm text-foreground-secondary">Here&apos;s your financial snapshot</p>
       </header>
 
       {/* Action Prompts (if data missing) */}
