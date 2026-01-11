@@ -80,33 +80,5 @@ export function getProjectionAtYear(
   return projection.find((p) => p.year === targetYear) || null;
 }
 
-/**
- * Format currency for display (JPY)
- */
-export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'JPY',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
-/**
- * Format large numbers with K/M/B suffix
- */
-export function formatCompactCurrency(amount: number): string {
-  const absAmount = Math.abs(amount);
-  const sign = amount < 0 ? '-' : '';
-
-  if (absAmount >= 1_000_000_000) {
-    return `${sign}¥${(absAmount / 1_000_000_000).toFixed(1)}B`;
-  }
-  if (absAmount >= 1_000_000) {
-    return `${sign}¥${(absAmount / 1_000_000).toFixed(1)}M`;
-  }
-  if (absAmount >= 1_000) {
-    return `${sign}¥${(absAmount / 1_000).toFixed(0)}K`;
-  }
-  return `${sign}¥${absAmount.toFixed(0)}`;
-}
+// Re-export formatting utilities from centralized location
+export { formatCurrency, formatCompactCurrency } from './format';
