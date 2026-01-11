@@ -1,202 +1,251 @@
-# Asset Management
+# Financial Trajectory
 
-個人資産管理・ポートフォリオ追跡アプリケーション（MVP版）
+**Personal Financial Trajectory OS**
 
-## 概要
-
-Next.js + IndexedDB + shadcn/ui で構築された、オフライン対応の資産管理アプリケーションです。
-**外部データ（株価API、ニュース等）は一切使用せず**、ユーザーが手動で入力した情報のみで資産管理・将来予測を行います。
-
-## 主な機能
-
-### 1. 資産管理 (Assets)
-
-5種類の資産カテゴリに対応：
-
-- **現金・預金**: 金融機関、口座名、残高
-- **株式**: 市場（日本/米国/その他）、ティッカー、銘柄名、保有株数、平均取得単価、現在評価額、通貨
-- **投資信託 / ETF**: 種類、商品名、保有数量、平均取得単価、現在評価額
-- **暗号資産**: 通貨、保有数量、平均取得単価、現在評価額、取引所
-- **持ち株**: 種別（ESPP/RSU/ストックオプション）、会社名、ティッカー、保有株数/権利数、取得単価/行使価格、現在評価額、ESPP詳細
-
-#### 特徴
-
-- カテゴリ選択で入力項目が動的に出し分け
-- 株式の含み益は現在評価額が入力されている場合のみ計算: `含み益 = 現在評価額 - (保有株数 × 平均取得単価)`
-- 数値入力はplaceholderのみ（初期値0を表示しない）
-- モバイル最適化（inputMode="numeric" / "decimal"）
-- 必須フィールドが未入力の場合、保存ボタンをdisabled
-- **ティッカーは識別子/表示用のみ（外部データ取得なし）**
-
-### 2. 経費管理 (Expenses)
-
-- 固定費/変動費の分類
-- カテゴリ別支出管理（住居、光熱費、通信費、食費、交通費など）
-- 月間集計表示
-
-### 3. 収入管理 (Income)
-
-- 収入種類: 給与、賞与、その他
-- 収入源、金額、日付を記録
-- 月間収入集計（合計/給与/賞与）
-
-### 4. 積立プラン (Plan)
-
-- カテゴリ別の月間積立額設定
-- 期待リターン（年率%）の手動設定
-- 月間/年間積立額合計表示
-
-### 5. 将来予測 (Forecast)
-
-- 現在の総資産と月間積立額から将来資産を予測
-- **期待リターンは手動入力（外部データなし）**
-- 予測期間: 1〜50年（デフォルト10年）
-- 月次複利計算による簡易シミュレーション
-- 折れ線グラフで視覚化（Recharts）
-
-### 6. ダッシュボード (Dashboard)
-
-- 総資産推移（30日分）
-- 資産構成比（ドーナツチャート）
-- KPI表示（純資産増減、月間収支、貯蓄率、流動性比率、月間総支出）
-- 月次カレンダー（日次スナップショット）
-
-## 技術スタック
-
-| カテゴリ | 技術 |
-|---|---|
-| フレームワーク | Next.js 14 (App Router) |
-| UI | React 18, shadcn/ui, Radix UI, Tailwind CSS |
-| データベース | IndexedDB (Dexie v4) |
-| フォーム管理 | React Hook Form + Zod |
-| グラフ | Recharts v3.6 |
-| 日付処理 | date-fns v4.1 |
-| テーマ | next-themes (Dark/Light対応) |
-
-## プロジェクト構造
-
-```
-/home/user/Asset-Management/
-├── app/                          # Next.js App Router
-│   ├── page.tsx                  # Dashboard
-│   ├── assets/page.tsx           # 資産管理
-│   ├── expenses/page.tsx         # 経費管理
-│   ├── income/page.tsx           # 収入管理
-│   ├── plan/page.tsx             # 積立プラン
-│   └── forecast/page.tsx         # 将来予測
-├── components/
-│   ├── assets/                   # 資産関連コンポーネント
-│   ├── expenses/                 # 経費関連コンポーネント
-│   ├── income/                   # 収入関連コンポーネント
-│   ├── plan/                     # プラン関連コンポーネント
-│   ├── forecast/                 # 予測関連コンポーネント
-│   ├── dashboard/                # ダッシュボードコンポーネント
-│   ├── layout/                   # レイアウトコンポーネント
-│   └── ui/                       # shadcn/ui プリミティブ
-├── lib/
-│   ├── db/
-│   │   ├── schema.ts             # Dexie スキーマ定義
-│   │   └── indexeddb.ts          # CRUD操作
-│   ├── hooks/
-│   │   ├── useAssets.ts
-│   │   ├── useExpenses.ts
-│   │   ├── useIncomes.ts
-│   │   ├── usePlans.ts
-│   │   └── useDashboard.ts
-│   ├── services/
-│   │   └── snapshot.service.ts   # 日次スナップショット
-│   └── utils/
-│       ├── kpi.ts                # KPI計算
-│       ├── asset-helpers.ts      # 資産評価額計算
-│       └── forecast.ts           # 将来予測計算
-└── types/
-    └── index.ts                  # TypeScript型定義
-```
-
-## セットアップ
-
-### 前提条件
-
-- Node.js 18+
-- npm または yarn
-
-### インストール
-
-```bash
-# 依存関係のインストール
-npm install
-
-# 開発サーバー起動
-npm run dev
-
-# ビルド
-npm run build
-
-# 本番環境起動
-npm start
-```
-
-## データベース
-
-### スキーマ（Dexie v2）
-
-- **assets**: 資産データ（5カテゴリ対応）
-- **expenses**: 経費データ
-- **incomes**: 収入データ
-- **investmentPlans**: 積立プランデータ
-- **dailySnapshots**: 日次スナップショット（資産推移記録）
-- **settings**: アプリ設定
-
-### マイグレーション
-
-旧カテゴリ（v1）から新カテゴリ（v2）へのマイグレーションを自動実行：
-
-- `cash` → `deposit`（現金・預金）
-- `investment` → `stock` または `fund`（ティッカーの有無で判定）
-- `realEstate` / `other` → `deposit`（仕様にないため）
-
-## MVP範囲（外部データなし）
-
-### 実装済み機能
-
-✅ 5種類の資産カテゴリ管理
-✅ カテゴリ別フォームUI（動的出し分け）
-✅ 経費管理（固定費/変動費）
-✅ 収入管理（給与/賞与/その他）
-✅ 積立プラン管理
-✅ 将来予測（手動リターン入力）
-✅ ダッシュボード（KPI、グラフ）
-✅ 日次スナップショット
-✅ ダークモード対応
-✅ IndexedDBマイグレーション
-
-### 実装していない機能（仕様により除外）
-
-❌ 株価API連携（ティッカーは識別子/表示用のみ）
-❌ ニュースフィード
-❌ リアルタイムデータ取得
-❌ 為替レート自動取得
-❌ OCR取り込み（持ち株の証券明細等）
-
-### 今後の改善案（TODO）
-
-- [ ] モバイル最適化: サイドバーをドロワー化（ハンバーガーメニュー）
-- [ ] モーダル/フォームのスマホ対応改善（横はみ出し防止）
-- [ ] 資産編集機能の強化（カテゴリ変更時のデータ保持）
-- [ ] データエクスポート機能（CSV/JSON）
-- [ ] データインポート機能
-- [ ] 複数通貨対応（USD/JPY以外）
-- [ ] PWA対応（オフライン完全対応）
-- [ ] テスト追加（Jest / Playwright）
-
-## ライセンス
-
-MIT
-
-## 作成者
-
-Asset Management Team
+This app is not for tracking money.
+It is for understanding financial direction.
 
 ---
 
-**注意**: このアプリケーションは外部データ（株価API、ニュースフィード等）を一切使用しません。すべての数値（株価、評価額、期待リターン等）はユーザーが手動で入力する必要があります。
+## Overview
+
+Financial Trajectory is a premium, mobile-first application designed to answer one core question:
+
+**"Am I moving in the right financial direction?"**
+
+Built with Next.js, TypeScript, and IndexedDB, this app provides instant psychological feedback on your financial health through a clean, futuristic interface. No budgeting. No expense categories. No external APIs.
+
+---
+
+## Core Philosophy
+
+1. **This is NOT a budgeting app**
+   We don't track daily expenses or categorize every transaction.
+
+2. **One core question**
+   "Am I moving in the right financial direction?"
+
+3. **UI/UX is the highest priority**
+   Every interaction should feel calm, confident, and quietly powerful.
+
+4. **Mobile-first**
+   Designed for iPhone (375 × 812). Desktop is secondary.
+
+5. **Dark mode only**
+   Premium, futuristic aesthetic.
+
+6. **No external data**
+   No stock APIs, no news feeds, no real-time data. All projections are user-driven and local.
+
+---
+
+## Features
+
+### 📊 Overview
+Instant financial direction indicator:
+- **Stable Growth** / **Flat** / **At Risk**
+- Key metrics: Net Worth, Monthly Investment, Cash Runway, Savings Rate
+- Minimal net worth trend chart (last 6 months)
+
+### 📈 Trajectory
+Interactive projection screen:
+- Hero number: "In 10 years → ¥X.XM"
+- Adjustable time horizon (1-50 years)
+- Monthly investment and expected return controls
+- Real-time chart updates
+- Breakdown of contributions vs. growth
+
+### ⚙️ Adjust
+Simple financial levers:
+- Monthly income (no micromanagement)
+- Annual bonus (optional)
+- Monthly living cost (single number, no categories)
+- Computed: annual income, monthly surplus, savings rate
+
+### 👤 Profile
+Records and control:
+- Sortable monthly history
+- Display: net worth, income, living cost, investment
+- Settings: base currency (JPY)
+- Data export (coming soon)
+
+---
+
+## Tech Stack
+
+| Category | Technology |
+|----------|-----------|
+| Framework | Next.js 14 (App Router) |
+| Language | TypeScript 5.7 |
+| UI | React 18, shadcn/ui, Tailwind CSS |
+| Database | IndexedDB (Dexie v4) |
+| Charts | Recharts 3.6 |
+| Fonts | Inter (next/font/google) |
+| Theme | Permanent dark mode |
+
+---
+
+## Design System
+
+### Colors
+- Background: `#0B0F1A` (primary), `#0E1324` (secondary)
+- Accent Growth: `#4DFFE5` (teal/neon mint)
+- Accent Warning: `#FFB020`
+- Accent Negative: `#FF6B6B`
+- Borders: `rgba(255,255,255,0.06)`
+
+### Typography
+- Font: Inter
+- Numeric font features for financial data
+- Medium weight headings
+- Tight tracking for numbers
+
+### Layout
+- Border radius: 12px (cards), 8px (inputs)
+- Mobile-first: 375px viewport
+- Bottom tab navigation
+- Generous vertical spacing
+
+---
+
+## Quick Start
+
+### Prerequisites
+- Node.js 18+
+- npm or yarn
+
+### Installation
+
+```bash
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Start production server
+npm start
+```
+
+### First Time Setup
+
+1. Open the app at `http://localhost:3000`
+2. Navigate to the **Profile** tab
+3. Click **"Generate Demo Data"** to explore the app with sample data
+4. Once comfortable, clear the demo data and add your own information via the **Adjust** tab
+
+---
+
+## Project Structure
+
+```
+/
+├── app/                         # Next.js App Router
+│   ├── page.tsx                 # Overview (direction indicator)
+│   ├── trajectory/page.tsx      # Projection screen
+│   ├── adjust/page.tsx          # Income & lifestyle inputs
+│   └── profile/page.tsx         # Monthly history & settings
+├── components/
+│   ├── layout/                  # Bottom nav, page shell
+│   ├── overview/                # Direction analysis, chart
+│   ├── trajectory/              # Projection chart
+│   └── ui/                      # shadcn/ui primitives
+├── lib/
+│   ├── db/
+│   │   ├── schema.ts            # Dexie database schema
+│   │   └── indexeddb.ts         # CRUD operations
+│   ├── hooks/
+│   │   └── useMonthlyStates.ts  # Monthly state management
+│   └── utils/
+│       ├── projection.ts        # Projection calculations
+│       ├── direction.ts         # Direction analysis
+│       └── demo-data.ts         # Demo data generator
+└── types/
+    └── index.ts                 # TypeScript definitions
+```
+
+---
+
+## Data Model
+
+The app revolves around **MonthlyState** - a simplified snapshot of your financial state:
+
+```typescript
+interface MonthlyState {
+  month: string;                    // "YYYY-MM"
+  netWorth: number;                 // Total net worth
+  cash: number;                     // Cash & deposits
+  invested: number;                 // All investments
+  incomeMonthly: number;            // Monthly income
+  livingCostMonthly: number;        // Monthly living cost
+  monthlyInvestContribution: number; // Monthly investment
+}
+```
+
+---
+
+## Projection Model
+
+Financial projections use monthly compounding:
+
+```
+FV = PV × (1 + r)^n + PMT × [((1 + r)^n - 1) / r]
+
+Where:
+- PV = Present Value (current net worth)
+- r = monthly rate (annual rate / 12 / 100)
+- n = number of months
+- PMT = monthly payment (contribution)
+```
+
+No external data. No market assumptions. Just math.
+
+---
+
+## What This App Is NOT
+
+❌ A budgeting tool
+❌ An expense tracker
+❌ A stock portfolio manager
+❌ A financial news aggregator
+❌ A real-time market data viewer
+
+---
+
+## What This App IS
+
+✅ A direction indicator
+✅ A trajectory visualizer
+✅ A psychological compass
+✅ A calm, confident tool
+✅ A local-first, privacy-focused app
+
+---
+
+## Privacy
+
+- **100% local**: All data stored in IndexedDB (your browser)
+- **No backend**: No servers, no cloud sync
+- **No tracking**: No analytics, no telemetry
+- **No external APIs**: No data leaves your device
+
+---
+
+## License
+
+MIT
+
+---
+
+## Philosophy
+
+> "The goal is not to track every penny.
+> The goal is to know, instantly, if you're on the right path."
+
+This app exists to provide calm, confident clarity about your financial direction.
+Not to stress you with categories, budgets, and micromanagement.
+
+**Understanding your financial direction.**

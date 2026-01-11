@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { db } from './schema';
-import type { Asset, Expense, Income, DailySnapshot, AppSettings, InvestmentPlan } from '@/types';
+import type { Asset, Expense, Income, DailySnapshot, AppSettings, InvestmentPlan, MonthlyState } from '@/types';
 
 // ========== Assets CRUD ==========
 export const assetsDB = {
@@ -214,5 +214,61 @@ export const investmentPlansDB = {
 
   async getByCategory(category: InvestmentPlan['assetCategory']): Promise<InvestmentPlan[]> {
     return await db.investmentPlans.where('assetCategory').equals(category).toArray();
+  },
+};
+
+// ========== Monthly States CRUD ==========
+export const monthlyStatesDB = {
+  async getAll(): Promise<MonthlyState[]> {
+    return await db.monthlyStates.orderBy('month').reverse().toArray();
+  },
+
+  async getById(id: string): Promise<MonthlyState | undefined> {
+    return await db.monthlyStates.get(id);
+  },
+
+  async getByMonth(month: string): Promise<MonthlyState | undefined> {
+    return await db.monthlyStates.where('month').equals(month).first();
+  },
+
+  async create(state: Omit<MonthlyState, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    const id = uuidv4();
+    const now = new Date();
+    await db.monthlyStates.add({
+      ...state,
+      id,
+      createdAt: now,
+      updatedAt: now,
+    });
+    return id;
+  },
+
+  async update(id: string, updates: Partial<Omit<MonthlyState, 'id' | 'createdAt'>>): Promise<void> {
+    await db.monthlyStates.update(id, {
+      ...updates,
+      updatedAt: new Date(),
+    });
+  },
+
+  async upsertByMonth(month: string, state: Omit<MonthlyState, 'id' | 'month' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    const existing = await this.getByMonth(month);
+    if (existing) {
+      await this.update(existing.id, state);
+      return existing.id;
+    } else {
+      return await this.create({ ...state, month });
+    }
+  },
+
+  async delete(id: string): Promise<void> {
+    await db.monthlyStates.delete(id);
+  },
+
+  async getLatest(): Promise<MonthlyState | undefined> {
+    return await db.monthlyStates.orderBy('month').reverse().first();
+  },
+
+  async getRecent(count: number): Promise<MonthlyState[]> {
+    return await db.monthlyStates.orderBy('month').reverse().limit(count).toArray();
   },
 };

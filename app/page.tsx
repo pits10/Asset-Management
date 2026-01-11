@@ -1,123 +1,152 @@
-'use client';
+"use client";
 
-import { Header } from '@/components/layout/header';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useDashboard } from '@/lib/hooks/useDashboard';
-import { KPICard } from '@/components/dashboard/kpi-card';
-import { NetWorthChart } from '@/components/dashboard/net-worth-chart';
-import { SavingsRateGauge } from '@/components/dashboard/savings-rate-gauge';
-import { MonthlyCalendar } from '@/components/dashboard/monthly-calendar';
-import { AssetDonutChart } from '@/components/assets/asset-donut-chart';
+import { useState, useEffect } from "react";
+import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { useMonthlyStates } from "@/lib/hooks/useMonthlyStates";
+import { OverviewChart } from "@/components/overview/overview-chart";
+import {
+  analyzeDirection,
+  calculateCashRunway,
+  calculateSavingsRate,
+} from "@/lib/utils/direction";
+import { formatCurrency, formatCompactCurrency } from "@/lib/utils/projection";
+import type { MonthlyState } from "@/types";
 
-export default function DashboardPage() {
-  const { kpis, snapshots, loading } = useDashboard();
+export default function OverviewPage() {
+  const { getRecent } = useMonthlyStates();
+  const [recentStates, setRecentStates] = useState<MonthlyState[]>([]);
+  const [greeting, setGreeting] = useState("Good evening");
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ja-JP', {
-      style: 'currency',
-      currency: 'JPY',
-    }).format(amount);
-  };
+  // Load recent states
+  useEffect(() => {
+    getRecent(6).then((states) => {
+      setRecentStates(states.reverse()); // Oldest to newest for chart
+    });
 
-  if (loading || !kpis) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header title="Dashboard" description="Overview of your financial status" />
-        <div className="flex h-[400px] items-center justify-center">
-          <p className="text-muted-foreground">読み込み中...</p>
-        </div>
-      </div>
-    );
-  }
+    // Set greeting based on time
+    const hour = new Date().getHours();
+    if (hour < 12) {
+      setGreeting("Good morning");
+    } else if (hour < 18) {
+      setGreeting("Good afternoon");
+    } else {
+      setGreeting("Good evening");
+    }
+  }, [getRecent]);
 
-  const getValueColor = (value: number): 'green' | 'red' | 'default' => {
-    if (value > 0) return 'green';
-    if (value < 0) return 'red';
-    return 'default';
-  };
+  const direction = analyzeDirection(recentStates);
+  const latest = recentStates[recentStates.length - 1];
+
+  const DirectionIcon = {
+    up: TrendingUp,
+    down: TrendingDown,
+    flat: Minus,
+  }[direction.icon];
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header title="Dashboard" description="Overview of your financial status" />
+    <div className="container mx-auto max-w-lg space-y-6 px-4 py-6">
+      {/* Header */}
+      <header className="space-y-1">
+        <p className="text-sm text-foreground-secondary">{greeting}</p>
+        <h1 className="text-2xl font-medium text-foreground">Overview</h1>
+        <p className="text-sm text-foreground-muted">
+          Here&apos;s where your money is heading.
+        </p>
+      </header>
 
-      <div className="p-6 space-y-6">
-        {/* KPI Cards Grid */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <KPICard
-            title="純資産増減"
-            value={formatCurrency(kpis.netWorthChange)}
-            subtitle="期間開始時との差分"
-            valueColor={getValueColor(kpis.netWorthChange)}
-            helpText="登録開始時からの総資産の増減"
-          />
-
-          <KPICard
-            title="月間収支"
-            value={formatCurrency(kpis.monthlyBalance)}
-            subtitle="今月の収入 - 支出"
-            valueColor={getValueColor(kpis.monthlyBalance)}
-            helpText="今月の収入から支出を引いた金額"
-          />
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                貯蓄率
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <SavingsRateGauge rate={kpis.savingsRate} />
-            </CardContent>
-          </Card>
-
-          <KPICard
-            title="流動性比率"
-            value={`${kpis.liquidityRatio.toFixed(1)}%`}
-            subtitle="現金・預金 ÷ 総資産"
-            valueColor="blue"
-            helpText="総資産のうち現金・預金が占める割合"
-          />
-
-          <KPICard
-            title="月間総支出"
-            value={formatCurrency(kpis.monthlyExpenses)}
-            subtitle="今月の支出合計"
-            valueColor="red"
-            helpText="今月の固定費と変動費の合計"
-          />
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                資産構成比
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <AssetDonutChart data={kpis.assetAllocation} />
-            </CardContent>
-          </Card>
+      {/* Direction Card */}
+      <div className="rounded-lg border border-border bg-card p-6">
+        <div className="flex items-center gap-3">
+          <div
+            className={`flex h-12 w-12 items-center justify-center rounded-full ${
+              direction.status === "growth"
+                ? "bg-accent-growth/10"
+                : direction.status === "risk"
+                ? "bg-accent-negative/10"
+                : "bg-secondary"
+            }`}
+          >
+            <DirectionIcon
+              className={`h-6 w-6 ${direction.color}`}
+              strokeWidth={2.5}
+            />
+          </div>
+          <div className="flex-1">
+            <h2 className={`text-xl font-medium ${direction.color}`}>
+              {direction.label}
+            </h2>
+            <p className="text-sm text-foreground-muted">
+              {direction.description}
+            </p>
+          </div>
         </div>
-
-        {/* Net Worth Trend Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle>日次純資産推移</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <NetWorthChart snapshots={snapshots} />
-          </CardContent>
-        </Card>
-
-        {/* Monthly Calendar */}
-        <Card>
-          <CardHeader>
-            <CardTitle>月次カレンダー</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <MonthlyCalendar snapshots={snapshots} />
-          </CardContent>
-        </Card>
       </div>
+
+      {/* Metrics Grid */}
+      {latest && (
+        <div className="grid grid-cols-2 gap-4">
+          {/* Net Worth */}
+          <div className="rounded-lg border border-border bg-card p-4 space-y-1">
+            <p className="text-xs text-foreground-muted">Net Worth</p>
+            <p className="text-lg font-medium text-foreground numeric">
+              {formatCompactCurrency(latest.netWorth)}
+            </p>
+          </div>
+
+          {/* Monthly Investment */}
+          <div className="rounded-lg border border-border bg-card p-4 space-y-1">
+            <p className="text-xs text-foreground-muted">Monthly Investment</p>
+            <p className="text-lg font-medium text-foreground numeric">
+              {formatCompactCurrency(latest.monthlyInvestContribution)}
+            </p>
+          </div>
+
+          {/* Cash Runway */}
+          <div className="rounded-lg border border-border bg-card p-4 space-y-1">
+            <p className="text-xs text-foreground-muted">Cash Runway</p>
+            <p className="text-lg font-medium text-foreground numeric">
+              {calculateCashRunway(latest.cash, latest.livingCostMonthly)}{" "}
+              <span className="text-sm text-foreground-secondary">months</span>
+            </p>
+          </div>
+
+          {/* Savings Rate */}
+          <div className="rounded-lg border border-border bg-card p-4 space-y-1">
+            <p className="text-xs text-foreground-muted">Savings Rate</p>
+            <p className="text-lg font-medium text-foreground numeric">
+              {calculateSavingsRate(
+                latest.incomeMonthly,
+                latest.livingCostMonthly
+              )}
+              %
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Net Worth Trend Chart */}
+      {recentStates.length > 1 && (
+        <div className="rounded-lg border border-border bg-card p-4">
+          <div className="mb-2 flex items-baseline justify-between">
+            <h3 className="text-sm font-medium text-foreground">
+              Net Worth Trend
+            </h3>
+            <p className="text-xs text-foreground-muted">
+              Last {recentStates.length} months
+            </p>
+          </div>
+          <OverviewChart data={recentStates} />
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!latest && (
+        <div className="rounded-lg border border-border bg-card p-8 text-center">
+          <p className="text-foreground-secondary">
+            No data yet. Add your financial information to get started.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

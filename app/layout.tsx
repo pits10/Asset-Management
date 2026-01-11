@@ -1,21 +1,25 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/providers/theme-provider";
-import { Sidebar } from "@/components/layout/sidebar";
+import { PageShell } from "@/components/layout/page-shell";
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
 
 export const metadata: Metadata = {
-  title: "Asset Management Dashboard",
-  description: "Personal asset management PWA inspired by Topstep",
+  title: "Financial Trajectory",
+  description: "Personal Financial Trajectory OS - Understanding your financial direction",
   manifest: "/manifest.json",
   viewport: {
     width: "device-width",
     initialScale: 1,
-    maximumScale: 1,
+    maximumScale: 5,
+    userScalable: true,
   },
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0f172a" },
-  ],
+  themeColor: "#0B0F1A",
 };
 
 export default function RootLayout({
@@ -24,21 +28,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja" suppressHydrationWarning>
-      <body className="font-sans antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <div className="flex min-h-screen">
-            <Sidebar />
-            <main className="flex-1 pl-64">
-              {children}
-            </main>
-          </div>
-        </ThemeProvider>
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <body className={`${inter.variable} font-sans antialiased`}>
+        <PageShell>{children}</PageShell>
       </body>
     </html>
   );

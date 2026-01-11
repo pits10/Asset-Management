@@ -6,6 +6,7 @@ import type {
   DailySnapshot,
   AppSettings,
   InvestmentPlan,
+  MonthlyState,
 } from '@/types';
 
 // Dexie Database Class
@@ -16,6 +17,7 @@ class AssetManagementDB extends Dexie {
   dailySnapshots!: EntityTable<DailySnapshot, 'id'>;
   settings!: EntityTable<AppSettings, 'id'>;
   investmentPlans!: EntityTable<InvestmentPlan, 'id'>;
+  monthlyStates!: EntityTable<MonthlyState, 'id'>;
 
   constructor() {
     super('AssetManagementDB');
@@ -121,6 +123,17 @@ class AssetManagementDB extends Dexie {
           }
         }
       });
+
+    // Version 3: Add MonthlyState table for simplified trajectory
+    this.version(3).stores({
+      assets: 'id, category, updatedAt, createdAt',
+      expenses: 'id, type, category, date, createdAt',
+      incomes: 'id, type, source, date, createdAt',
+      dailySnapshots: 'id, date, createdAt',
+      settings: 'id',
+      investmentPlans: 'id, assetCategory, createdAt, updatedAt',
+      monthlyStates: 'id, month, createdAt, updatedAt', // New table for monthly aggregated state
+    });
   }
 }
 
