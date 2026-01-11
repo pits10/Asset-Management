@@ -99,7 +99,7 @@ export default function ScenariosPage() {
           </div>
         ) : (
           <div className="space-y-2">
-            {scenariosWithProjections.map(({ scenario, finalValue, totalGrowth, totalContributions }) => {
+            {scenariosWithProjections.map(({ scenario, finalValue }) => {
               const surplus = scenario.baselineIncome - scenario.monthlySpending;
               const savingsRate = scenario.baselineIncome > 0 ? (surplus / scenario.baselineIncome) * 100 : 0;
 

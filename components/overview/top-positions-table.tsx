@@ -61,7 +61,7 @@ export function TopPositionsTable({ assets, limit = 5 }: TopPositionsTableProps)
 
   return (
     <div className="space-y-2">
-      {assetsWithGain.map(({ asset, name, value, unrealizedGain, gainPercent, category }, index) => (
+      {assetsWithGain.map(({ asset, name, value, unrealizedGain, gainPercent, category }) => (
         <div
           key={asset.id}
           className="rounded-lg border border-border bg-background-secondary p-3 space-y-2"

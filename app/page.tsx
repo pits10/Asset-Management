@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { TrendingUp, TrendingDown, Minus, Plus, AlertCircle, Wallet, ArrowLeftRight } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, AlertCircle, Wallet, ArrowLeftRight } from 'lucide-react';
 import { useMonthlyStates } from '@/lib/hooks/useMonthlyStates';
 import { useUserProfile } from '@/lib/hooks/useUserProfile';
 import { useAssets } from '@/lib/hooks/useAssets';
@@ -10,8 +10,8 @@ import { useCashflow } from '@/lib/hooks/useCashflow';
 import { OverviewChart } from '@/components/overview/overview-chart';
 import { AssetAllocationChart } from '@/components/overview/asset-allocation-chart';
 import { TopPositionsTable } from '@/components/overview/top-positions-table';
-import { analyzeDirection, calculateCashRunway, calculateSavingsRate } from '@/lib/utils/direction';
-import { formatCurrency, formatCompactCurrency, getGreeting, formatPercent } from '@/lib/utils/format';
+import { analyzeDirection, calculateSavingsRate } from '@/lib/utils/direction';
+import { formatCurrency, getGreeting, formatPercent } from '@/lib/utils/format';
 import { calculatePercentageChange } from '@/lib/utils/format';
 import { Button } from '@/components/ui/button';
 import type { MonthlyState } from '@/types';

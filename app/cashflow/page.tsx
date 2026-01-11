@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, TrendingUp, TrendingDown, Edit2, Trash2, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Plus, TrendingUp, Edit2, Trash2, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { useCashflow } from '@/lib/hooks/useCashflow';
 import { formatCurrency, formatMonthDisplay, formatPercent, calculateSavingsRate } from '@/lib/utils/format';
 import { Button } from '@/components/ui/button';

@@ -10,7 +10,7 @@ interface PageShellProps {
 }
 
 export function PageShell({ children }: PageShellProps) {
-  const { profile, loading, saveProfile, isOnboarded } = useUserProfile();
+  const { loading, saveProfile, isOnboarded } = useUserProfile();
 
   const handleOnboardingComplete = async (data: {
     name: string;

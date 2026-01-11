@@ -20,7 +20,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { AssetCategoryLabels, FinancialInstitutions, EquityCompTypes } from '@/types';
-import { formatCurrency, parseCurrency } from '@/lib/utils/format';
 import type { Asset, AssetCategory } from '@/types';
 
 interface AssetFormDialogProps {

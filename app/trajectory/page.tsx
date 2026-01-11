@@ -7,7 +7,6 @@ import { useMonthlyStates } from "@/lib/hooks/useMonthlyStates";
 import {
   calculateProjection,
   formatCurrency,
-  formatCompactCurrency,
 } from "@/lib/utils/projection";
 
 export default function TrajectoryPage() {

@@ -23,7 +23,7 @@ export default function AssetsPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | undefined>();
 
-  const handleOpenForm = (category?: AssetCategory) => {
+  const handleOpenForm = () => {
     setEditingAsset(undefined);
     setFormOpen(true);
   };
