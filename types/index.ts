@@ -144,17 +144,31 @@ export interface KPIData {
   };
 }
 
+// ========== Monthly State (Simplified Trajectory Data) ==========
+export interface MonthlyState {
+  id: string;
+  month: string;                     // "YYYY-MM" format
+  netWorth: number;                  // Total net worth for the month
+  cash: number;                      // Cash & deposits total
+  invested: number;                  // All investment assets (stocks, funds, crypto, employee stock)
+  incomeMonthly: number;            // Total monthly income
+  livingCostMonthly: number;        // Total monthly living cost (expenses)
+  monthlyInvestContribution: number; // Monthly investment contribution
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 // ========== Helper Types ==========
-// カテゴリ表示名マッピング
+// Category display names (English)
 export const AssetCategoryLabels: Record<AssetCategory, string> = {
-  deposit: '現金・預金',
-  stock: '株式',
-  fund: '投資信託 / ETF',
-  crypto: '暗号資産',
-  employeeStock: '持ち株',
+  deposit: 'Cash & Deposits',
+  stock: 'Stocks',
+  fund: 'Funds / ETF',
+  crypto: 'Crypto',
+  employeeStock: 'Company Equity',
 };
 
-// 金融機関リスト
+// Financial institutions (kept for legacy compatibility)
 export const FinancialInstitutions = [
   '三菱UFJ',
   '三井住友',
