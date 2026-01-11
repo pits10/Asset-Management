@@ -1,34 +1,59 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { ChevronDown, ChevronUp, Calendar, Sparkles, Trash2 } from "lucide-react";
-import { useMonthlyStates } from "@/lib/hooks/useMonthlyStates";
-import { formatCurrency, formatCompactCurrency } from "@/lib/utils/projection";
-import { generateDemoData, clearAllData } from "@/lib/utils/demo-data";
-import type { MonthlyState } from "@/types";
+import { useState, useEffect } from 'react';
+import { ChevronDown, ChevronUp, Calendar, Sparkles, Trash2, User, Edit2 } from 'lucide-react';
+import { useMonthlyStates } from '@/lib/hooks/useMonthlyStates';
+import { useUserProfile } from '@/lib/hooks/useUserProfile';
+import { formatCompactCurrency } from '@/lib/utils/projection';
+import { getGreeting, formatCurrency } from '@/lib/utils/format';
+import { generateDemoData, clearAllData } from '@/lib/utils/demo-data';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import type { MonthlyState } from '@/types';
 
 export default function ProfilePage() {
   const { states, loading, refresh } = useMonthlyStates();
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const { profile, updateProfile } = useUserProfile();
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [sortedStates, setSortedStates] = useState<MonthlyState[]>([]);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editTarget, setEditTarget] = useState('');
 
   useEffect(() => {
     const sorted = [...states].sort((a, b) => {
-      return sortOrder === "desc"
-        ? b.month.localeCompare(a.month)
-        : a.month.localeCompare(b.month);
+      return sortOrder === 'desc' ? b.month.localeCompare(a.month) : a.month.localeCompare(b.month);
     });
     setSortedStates(sorted);
   }, [states, sortOrder]);
 
+  useEffect(() => {
+    if (profile && editDialogOpen) {
+      setEditName(profile.name);
+      setEditTarget(
+        profile.targetNetWorth ? formatCurrency(profile.targetNetWorth, profile.baseCurrency) : ''
+      );
+    }
+  }, [profile, editDialogOpen]);
+
   const toggleSortOrder = () => {
-    setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"));
+    setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'));
   };
 
   const formatMonth = (month: string) => {
-    const [year, monthNum] = month.split("-");
+    const [year, monthNum] = month.split('-');
     const date = new Date(parseInt(year), parseInt(monthNum) - 1);
-    return date.toLocaleDateString("en-US", { year: "numeric", month: "short" });
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
   };
 
   const handleGenerateDemo = async () => {
@@ -37,18 +62,34 @@ export default function ProfilePage() {
   };
 
   const handleClearData = async () => {
-    if (confirm("Are you sure you want to delete all data? This cannot be undone.")) {
+    if (confirm('Are you sure you want to delete all data? This cannot be undone.')) {
       await clearAllData();
       await refresh();
     }
   };
 
+  const handleSaveProfile = async () => {
+    if (!profile || !editName.trim()) return;
+
+    const targetValue = editTarget.replace(/[¥$,\s]/g, '');
+    const target = targetValue ? parseFloat(targetValue) : undefined;
+
+    await updateProfile({
+      name: editName.trim(),
+      targetNetWorth: target,
+    });
+
+    setEditDialogOpen(false);
+  };
+
   return (
     <div className="container mx-auto max-w-lg space-y-6 px-4 py-6">
-      {/* Header */}
-      <header className="space-y-1">
-        <h1 className="text-2xl font-medium text-foreground">Profile</h1>
-        <p className="text-sm text-foreground-secondary">Records & control</p>
+      {/* Header with Greeting */}
+      <header className="space-y-2">
+        <h1 className="text-2xl font-medium text-foreground">
+          {getGreeting()}, {profile?.name || 'User'}
+        </h1>
+        <p className="text-sm text-foreground-secondary">Manage your profile and settings</p>
       </header>
 
       {/* Monthly History */}
@@ -138,24 +179,98 @@ export default function ProfilePage() {
         )}
       </div>
 
-      {/* Settings */}
+      {/* User Info & Settings */}
       <div className="space-y-4">
-        <h2 className="text-lg font-medium text-foreground">Settings</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-medium text-foreground">Profile Settings</h2>
+          <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Edit2 className="h-4 w-4" />
+                Edit
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit Profile</DialogTitle>
+                <DialogDescription>Update your profile information</DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-name">Name</Label>
+                  <Input
+                    id="edit-name"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    placeholder="Your name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit-target">Target Net Worth (Optional)</Label>
+                  <Input
+                    id="edit-target"
+                    value={editTarget}
+                    onChange={(e) => setEditTarget(e.target.value)}
+                    placeholder={formatCurrency(10000000, profile?.baseCurrency || 'JPY')}
+                  />
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveProfile} disabled={!editName.trim()}>
+                  Save Changes
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
 
         <div className="rounded-lg border border-border bg-card p-5 space-y-4">
-          {/* Base Currency */}
+          {/* Name */}
           <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-foreground">Name</p>
+              <p className="text-xs text-foreground-muted">Your display name</p>
+            </div>
+            <div className="flex items-center gap-2 text-foreground-secondary">
+              <User className="h-4 w-4" />
+              <span className="text-sm">{profile?.name || 'User'}</span>
+            </div>
+          </div>
+
+          {/* Base Currency */}
+          <div className="flex items-center justify-between pt-3 border-t border-border">
             <div>
               <p className="text-sm font-medium text-foreground">Base Currency</p>
               <p className="text-xs text-foreground-muted">Default currency for all values</p>
             </div>
             <div className="rounded-lg bg-secondary px-3 py-1.5">
-              <span className="text-sm font-medium text-foreground">JPY (¥)</span>
+              <span className="text-sm font-medium text-foreground">
+                {profile?.baseCurrency || 'JPY'} (¥)
+              </span>
             </div>
           </div>
 
+          {/* Target Net Worth */}
+          {profile?.targetNetWorth && (
+            <div className="flex items-center justify-between pt-3 border-t border-border">
+              <div>
+                <p className="text-sm font-medium text-foreground">Target Net Worth</p>
+                <p className="text-xs text-foreground-muted">Your financial goal</p>
+              </div>
+              <span className="text-sm font-medium text-accent-growth">
+                {formatCurrency(profile.targetNetWorth, profile.baseCurrency)}
+              </span>
+            </div>
+          )}
+
           {/* Data Export (placeholder) */}
-          <div className="pt-2 border-t border-border">
+          <div className="pt-3 border-t border-border">
             <button
               disabled
               className="w-full rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-foreground-muted opacity-50 cursor-not-allowed"
