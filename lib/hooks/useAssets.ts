@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { assetsDB } from '@/lib/db/indexeddb';
+import { calculateCategoryTotals, calculateTotalAssets } from '@/lib/utils/asset-helpers';
 import type { Asset, AssetCategory } from '@/types';
 
 export function useAssets() {
@@ -62,7 +63,7 @@ export function useAssets() {
   };
 
   const getTotalAssets = () => {
-    return assets.reduce((sum, asset) => sum + asset.amount, 0);
+    return calculateTotalAssets(assets);
   };
 
   const getAssetsByCategory = (category: AssetCategory) => {
@@ -70,18 +71,7 @@ export function useAssets() {
   };
 
   const getCategoryTotals = () => {
-    return {
-      cash: getAssetsByCategory('cash').reduce((sum, a) => sum + a.amount, 0),
-      investment: getAssetsByCategory('investment').reduce(
-        (sum, a) => sum + a.amount,
-        0
-      ),
-      realEstate: getAssetsByCategory('realEstate').reduce(
-        (sum, a) => sum + a.amount,
-        0
-      ),
-      other: getAssetsByCategory('other').reduce((sum, a) => sum + a.amount, 0),
-    };
+    return calculateCategoryTotals(assets);
   };
 
   return {

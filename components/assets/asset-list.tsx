@@ -12,7 +12,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { calculateAssetValue, getAssetDisplayName } from '@/lib/utils/asset-helpers';
 import type { Asset, AssetCategory } from '@/types';
+import { AssetCategoryLabels } from '@/types';
 
 interface AssetListProps {
   assets: Asset[];
@@ -20,18 +22,12 @@ interface AssetListProps {
   onDelete: (id: string) => void;
 }
 
-const categoryLabels: Record<AssetCategory, string> = {
-  cash: '現金・預金',
-  investment: '投資',
-  realEstate: '不動産',
-  other: 'その他',
-};
-
 const categoryColors: Record<AssetCategory, string> = {
-  cash: 'bg-blue-500/10 text-blue-500',
-  investment: 'bg-green-500/10 text-green-500',
-  realEstate: 'bg-purple-500/10 text-purple-500',
-  other: 'bg-gray-500/10 text-gray-500',
+  deposit: 'bg-blue-500/10 text-blue-500',
+  stock: 'bg-green-500/10 text-green-500',
+  fund: 'bg-purple-500/10 text-purple-500',
+  crypto: 'bg-amber-500/10 text-amber-500',
+  employeeStock: 'bg-red-500/10 text-red-500',
 };
 
 export function AssetList({ assets, onEdit, onDelete }: AssetListProps) {
@@ -71,7 +67,7 @@ export function AssetList({ assets, onEdit, onDelete }: AssetListProps) {
         <TableRow>
           <TableHead>カテゴリ</TableHead>
           <TableHead>資産名</TableHead>
-          <TableHead className="text-right">金額</TableHead>
+          <TableHead className="text-right">評価額</TableHead>
           <TableHead>更新日</TableHead>
           <TableHead className="text-right">操作</TableHead>
         </TableRow>
@@ -85,19 +81,24 @@ export function AssetList({ assets, onEdit, onDelete }: AssetListProps) {
                   categoryColors[asset.category]
                 }`}
               >
-                {categoryLabels[asset.category]}
+                {AssetCategoryLabels[asset.category]}
               </span>
             </TableCell>
             <TableCell className="font-medium">
-              {asset.name}
-              {asset.ticker && (
+              {getAssetDisplayName(asset)}
+              {asset.category === 'stock' && asset.ticker && (
+                <span className="ml-2 text-xs text-muted-foreground">
+                  ({asset.ticker})
+                </span>
+              )}
+              {asset.category === 'employeeStock' && asset.ticker && (
                 <span className="ml-2 text-xs text-muted-foreground">
                   ({asset.ticker})
                 </span>
               )}
             </TableCell>
             <TableCell className="text-right font-mono">
-              {formatCurrency(asset.amount)}
+              {formatCurrency(calculateAssetValue(asset))}
             </TableCell>
             <TableCell className="text-sm text-muted-foreground">
               {format(new Date(asset.updatedAt), 'yyyy/MM/dd')}
