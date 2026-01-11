@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { db } from './schema';
-import type { Asset, Expense, Income, DailySnapshot, AppSettings, InvestmentPlan, MonthlyState } from '@/types';
+import type { Asset, Expense, Income, DailySnapshot, AppSettings, InvestmentPlan, MonthlyState, UserProfile, CashflowEntry, Scenario } from '@/types';
 
 // ========== Assets CRUD ==========
 export const assetsDB = {
@@ -270,5 +270,127 @@ export const monthlyStatesDB = {
 
   async getRecent(count: number): Promise<MonthlyState[]> {
     return await db.monthlyStates.orderBy('month').reverse().limit(count).toArray();
+  },
+};
+
+// ========== User Profile CRUD ==========
+export const userProfileDB = {
+  async get(): Promise<UserProfile | undefined> {
+    return await db.userProfile.toCollection().first();
+  },
+
+  async create(profile: Omit<UserProfile, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    const id = uuidv4();
+    const now = new Date();
+    await db.userProfile.add({
+      ...profile,
+      id,
+      createdAt: now,
+      updatedAt: now,
+    });
+    return id;
+  },
+
+  async update(id: string, updates: Partial<Omit<UserProfile, 'id' | 'createdAt'>>): Promise<void> {
+    await db.userProfile.update(id, {
+      ...updates,
+      updatedAt: new Date(),
+    });
+  },
+
+  async set(profile: Omit<UserProfile, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    const existing = await this.get();
+    if (existing) {
+      await this.update(existing.id, profile);
+      return existing.id;
+    } else {
+      return await this.create(profile);
+    }
+  },
+};
+
+// ========== Cashflow Entries CRUD ==========
+export const cashflowEntriesDB = {
+  async getAll(): Promise<CashflowEntry[]> {
+    return await db.cashflowEntries.orderBy('month').reverse().toArray();
+  },
+
+  async getById(id: string): Promise<CashflowEntry | undefined> {
+    return await db.cashflowEntries.get(id);
+  },
+
+  async getByMonth(month: string): Promise<CashflowEntry | undefined> {
+    return await db.cashflowEntries.where('month').equals(month).first();
+  },
+
+  async create(entry: Omit<CashflowEntry, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    const id = uuidv4();
+    const now = new Date();
+    await db.cashflowEntries.add({
+      ...entry,
+      id,
+      createdAt: now,
+      updatedAt: now,
+    });
+    return id;
+  },
+
+  async update(id: string, updates: Partial<Omit<CashflowEntry, 'id' | 'createdAt'>>): Promise<void> {
+    await db.cashflowEntries.update(id, {
+      ...updates,
+      updatedAt: new Date(),
+    });
+  },
+
+  async upsertByMonth(month: string, entry: Omit<CashflowEntry, 'id' | 'month' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    const existing = await this.getByMonth(month);
+    if (existing) {
+      await this.update(existing.id, entry);
+      return existing.id;
+    } else {
+      return await this.create({ ...entry, month });
+    }
+  },
+
+  async delete(id: string): Promise<void> {
+    await db.cashflowEntries.delete(id);
+  },
+
+  async getRecent(count: number): Promise<CashflowEntry[]> {
+    return await db.cashflowEntries.orderBy('month').reverse().limit(count).toArray();
+  },
+};
+
+// ========== Scenarios CRUD ==========
+export const scenariosDB = {
+  async getAll(): Promise<Scenario[]> {
+    return await db.scenarios.orderBy('createdAt').reverse().toArray();
+  },
+
+  async getById(id: string): Promise<Scenario | undefined> {
+    return await db.scenarios.get(id);
+  },
+
+  async create(scenario: Omit<Scenario, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    const id = uuidv4();
+    const now = new Date();
+    await db.scenarios.add({
+      ...scenario,
+      id,
+      createdAt: now,
+      updatedAt: now,
+    });
+    return id;
+  },
+
+  async update(id: string, updates: Partial<Omit<Scenario, 'id' | 'createdAt'>>): Promise<void> {
+    await db.scenarios.update(id, {
+      ...updates,
+      updatedAt: new Date(),
+    });
+  },
+
+  async delete(id: string): Promise<void> {
+    await db.scenarios.delete(id);
   },
 };

@@ -7,7 +7,6 @@ import { useMonthlyStates } from "@/lib/hooks/useMonthlyStates";
 import {
   calculateProjection,
   formatCurrency,
-  formatCompactCurrency,
 } from "@/lib/utils/projection";
 
 export default function TrajectoryPage() {
@@ -53,10 +52,10 @@ export default function TrajectoryPage() {
           <p className="text-sm text-foreground-secondary">
             In {horizonYears} {horizonYears === 1 ? "year" : "years"}
           </p>
-          <h2 className="text-4xl font-medium text-accent-growth numeric tracking-tight">
-            {formatCompactCurrency(futureValue?.totalValue || 0)}
+          <h2 className="text-3xl font-medium text-accent-growth numeric tracking-tight">
+            {formatCurrency(futureValue?.totalValue || 0)}
           </h2>
-          <p className="text-xs text-foreground-muted">Estimated trajectory</p>
+          <p className="text-xs text-foreground-muted">Projected net worth</p>
         </div>
       </div>
 

@@ -158,6 +158,46 @@ export interface MonthlyState {
   updatedAt: Date;
 }
 
+// ========== User Profile (Onboarding) ==========
+export interface UserProfile {
+  id: string;
+  name: string;                      // User's name
+  baseCurrency: 'JPY' | 'USD';       // Base currency (default JPY)
+  displayCurrency: 'JPY' | 'USD';    // Display currency (default JPY)
+  targetNetWorth?: number;           // Optional target net worth
+  onboardingCompleted: boolean;      // Has completed onboarding wizard
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// ========== Cashflow Entry ==========
+export interface CashflowEntry {
+  id: string;
+  month: string;                     // "YYYY-MM" format
+  baselineSpending: number;          // Monthly baseline spending
+  monthlyInvestment: number;         // Monthly investment contributions
+  baselineIncome: number;            // Monthly income (salary)
+  bonusAmount?: number;              // Bonus for this month (optional)
+  notes?: string;                    // Optional notes
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// ========== Scenario (What-If) ==========
+export interface Scenario {
+  id: string;
+  name: string;                      // Scenario name
+  years: number;                     // Projection years
+  expectedReturn: number;            // Expected annual return (%)
+  monthlyInvestment: number;         // Monthly investment amount
+  monthlySpending: number;           // Monthly spending
+  incomeGrowth: number;              // Annual income growth rate (%)
+  baselineIncome: number;            // Starting monthly income
+  currentNetWorth: number;           // Starting net worth
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 // ========== Helper Types ==========
 // Category display names (English)
 export const AssetCategoryLabels: Record<AssetCategory, string> = {
@@ -165,20 +205,24 @@ export const AssetCategoryLabels: Record<AssetCategory, string> = {
   stock: 'Stocks',
   fund: 'Funds / ETF',
   crypto: 'Crypto',
-  employeeStock: 'Company Equity',
+  employeeStock: 'Equity Comp',
 };
 
-// Financial institutions (kept for legacy compatibility)
+// Financial institutions (Japanese banks)
 export const FinancialInstitutions = [
-  '三菱UFJ',
-  '三井住友',
-  'みずほ',
-  'りそな',
-  'ゆうちょ',
-  '楽天銀行',
-  '住信SBI',
-  'PayPay銀行',
-  'その他',
+  'MUFG Bank',
+  'Sumitomo Mitsui Banking',
+  'Mizuho Bank',
+  'Resona Bank',
+  'Japan Post Bank',
+  'Rakuten Bank',
+  'SBI Sumishin Net Bank',
+  'PayPay Bank',
+  'Custom',
 ] as const;
 
 export type FinancialInstitution = typeof FinancialInstitutions[number];
+
+// Equity compensation types
+export const EquityCompTypes = ['ESPP', 'RSU', 'Stock Options'] as const;
+export type EquityCompType = typeof EquityCompTypes[number];
