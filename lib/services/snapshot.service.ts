@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 import { assetsDB, snapshotsDB } from '@/lib/db/indexeddb';
+import { calculateCategoryTotals } from '@/lib/utils/asset-helpers';
 import type { DailySnapshot } from '@/types';
 
 /**
@@ -22,26 +23,18 @@ export class SnapshotService {
     const assets = await assetsDB.getAll();
 
     // カテゴリ別集計
-    const assetBreakdown = {
-      cash: 0,
-      investment: 0,
-      realEstate: 0,
-      other: 0,
-    };
-
-    assets.forEach((asset) => {
-      assetBreakdown[asset.category] += asset.amount;
-    });
+    const assetBreakdown = calculateCategoryTotals(assets);
 
     // 総資産計算
     const totalAssets =
-      assetBreakdown.cash +
-      assetBreakdown.investment +
-      assetBreakdown.realEstate +
-      assetBreakdown.other;
+      assetBreakdown.deposit +
+      assetBreakdown.stock +
+      assetBreakdown.fund +
+      assetBreakdown.crypto +
+      assetBreakdown.employeeStock;
 
-    // 流動性比率計算
-    const cashRatio = totalAssets > 0 ? (assetBreakdown.cash / totalAssets) * 100 : 0;
+    // 流動性比率計算（現金・預金の比率）
+    const cashRatio = totalAssets > 0 ? (assetBreakdown.deposit / totalAssets) * 100 : 0;
 
     // 前日のスナップショットを取得して差分計算
     const yesterday = await this.getLatestSnapshot();

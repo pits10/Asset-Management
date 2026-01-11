@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { format } from 'date-fns';
 import { Pencil, Trash2 } from 'lucide-react';
 import {
   Table,
@@ -12,13 +11,12 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { calculateAssetValue, getAssetDisplayName } from '@/lib/utils/asset-helpers';
-import type { Asset, AssetCategory } from '@/types';
-import { AssetCategoryLabels } from '@/types';
+import type { InvestmentPlan, AssetCategory } from '@/types';
 
-interface AssetListProps {
-  assets: Asset[];
-  onEdit: (asset: Asset) => void;
+
+interface PlanListProps {
+  plans: InvestmentPlan[];
+  onEdit: (plan: InvestmentPlan) => void;
   onDelete: (id: string) => void;
 }
 
@@ -30,7 +28,7 @@ const categoryColors: Record<AssetCategory, string> = {
   employeeStock: 'bg-red-500/10 text-red-500',
 };
 
-export function AssetList({ assets, onEdit, onDelete }: AssetListProps) {
+export function PlanList({ plans, onEdit, onDelete }: PlanListProps) {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   const formatCurrency = (amount: number) => {
@@ -50,12 +48,12 @@ export function AssetList({ assets, onEdit, onDelete }: AssetListProps) {
     }
   };
 
-  if (assets.length === 0) {
+  if (plans.length === 0) {
     return (
       <div className="flex h-[300px] items-center justify-center text-muted-foreground">
         <div className="text-center">
-          <p className="text-lg font-medium">資産がまだ登録されていません</p>
-          <p className="text-sm mt-2">「+ 追加」ボタンから資産を登録してください</p>
+          <p className="text-lg font-medium">積立プランがまだ登録されていません</p>
+          <p className="text-sm mt-2">「+ 追加」ボタンから積立プランを登録してください</p>
         </div>
       </div>
     );
@@ -66,49 +64,41 @@ export function AssetList({ assets, onEdit, onDelete }: AssetListProps) {
       <TableHeader>
         <TableRow>
           <TableHead>カテゴリ</TableHead>
-          <TableHead>資産名</TableHead>
-          <TableHead className="text-right">評価額</TableHead>
-          <TableHead>更新日</TableHead>
+          <TableHead className="text-right">月間積立額</TableHead>
+          <TableHead className="text-right">期待リターン</TableHead>
+          <TableHead className="text-right">年間積立額</TableHead>
           <TableHead className="text-right">操作</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {assets.map((asset) => (
-          <TableRow key={asset.id}>
+        {plans.map((plan) => (
+          <TableRow key={plan.id}>
             <TableCell>
               <span
                 className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                  categoryColors[asset.category]
+                  categoryColors[plan.assetCategory]
                 }`}
               >
-                {AssetCategoryLabels[asset.category]}
+                {plan.categoryName}
               </span>
             </TableCell>
-            <TableCell className="font-medium">
-              {getAssetDisplayName(asset)}
-              {asset.category === 'stock' && asset.ticker && (
-                <span className="ml-2 text-xs text-muted-foreground">
-                  ({asset.ticker})
-                </span>
-              )}
-              {asset.category === 'employeeStock' && asset.ticker && (
-                <span className="ml-2 text-xs text-muted-foreground">
-                  ({asset.ticker})
-                </span>
-              )}
+            <TableCell className="text-right font-mono">
+              {formatCurrency(plan.monthlyAmount)}
             </TableCell>
             <TableCell className="text-right font-mono">
-              {formatCurrency(calculateAssetValue(asset))}
+              {plan.expectedReturn !== undefined
+                ? `${plan.expectedReturn.toFixed(1)}%`
+                : '-'}
             </TableCell>
-            <TableCell className="text-sm text-muted-foreground">
-              {format(new Date(asset.updatedAt), 'yyyy/MM/dd')}
+            <TableCell className="text-right font-mono text-muted-foreground">
+              {formatCurrency(plan.monthlyAmount * 12)}
             </TableCell>
             <TableCell className="text-right">
               <div className="flex justify-end gap-2">
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => onEdit(asset)}
+                  onClick={() => onEdit(plan)}
                 >
                   <Pencil className="h-4 w-4" />
                   <span className="sr-only">編集</span>
@@ -116,9 +106,9 @@ export function AssetList({ assets, onEdit, onDelete }: AssetListProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => handleDelete(asset.id)}
+                  onClick={() => handleDelete(plan.id)}
                   className={
-                    deleteConfirm === asset.id
+                    deleteConfirm === plan.id
                       ? 'text-red-500 hover:text-red-600'
                       : ''
                   }

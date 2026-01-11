@@ -1,5 +1,6 @@
 import { startOfMonth, endOfMonth } from 'date-fns';
 import { assetsDB, expensesDB, incomesDB, snapshotsDB } from '@/lib/db/indexeddb';
+import { calculateAssetValue, calculateCategoryTotals } from '@/lib/utils/asset-helpers';
 import type { KPIData } from '@/types';
 
 /**
@@ -92,15 +93,15 @@ export class KPICalculator {
    */
   static async getLiquidityRatio(): Promise<number> {
     const assets = await assetsDB.getAll();
-    const totalAssets = assets.reduce((sum, asset) => sum + asset.amount, 0);
+    const totalAssets = assets.reduce((sum, asset) => sum + calculateAssetValue(asset), 0);
 
     if (totalAssets === 0) return 0;
 
-    const cash = assets
-      .filter((asset) => asset.category === 'cash')
-      .reduce((sum, asset) => sum + asset.amount, 0);
+    const deposit = assets
+      .filter((asset) => asset.category === 'deposit')
+      .reduce((sum, asset) => sum + calculateAssetValue(asset), 0);
 
-    return (cash / totalAssets) * 100;
+    return (deposit / totalAssets) * 100;
   }
 
   /**
@@ -118,24 +119,13 @@ export class KPICalculator {
    * 資産構成比
    */
   static async getAssetAllocation(): Promise<{
-    cash: number;
-    investment: number;
-    realEstate: number;
-    other: number;
+    deposit: number;
+    stock: number;
+    fund: number;
+    crypto: number;
+    employeeStock: number;
   }> {
     const assets = await assetsDB.getAll();
-
-    const allocation = {
-      cash: 0,
-      investment: 0,
-      realEstate: 0,
-      other: 0,
-    };
-
-    assets.forEach((asset) => {
-      allocation[asset.category] += asset.amount;
-    });
-
-    return allocation;
+    return calculateCategoryTotals(assets);
   }
 }

@@ -1,15 +1,67 @@
 // ========== Assets ==========
-export type AssetCategory = 'cash' | 'investment' | 'realEstate' | 'other';
+export type AssetCategory = 'deposit' | 'stock' | 'fund' | 'crypto' | 'employeeStock';
 
-export interface Asset {
-  id: string;                    // UUID
+interface BaseAsset {
+  id: string;
   category: AssetCategory;
-  name: string;                  // "三菱UFJ普通預金"
-  amount: number;                // 金額（円）
-  ticker?: string;               // "AAPL" (株式の場合)
-  updatedAt: Date;
   createdAt: Date;
+  updatedAt: Date;
 }
+
+// 現金・預金
+export interface DepositAsset extends BaseAsset {
+  category: 'deposit';
+  financialInstitution?: string; // 金融機関
+  accountName?: string;          // 口座名
+  balance: number;               // 残高（JPY）
+}
+
+// 株式
+export interface StockAsset extends BaseAsset {
+  category: 'stock';
+  market?: 'japan' | 'us' | 'other'; // 市場
+  ticker?: string;                    // ティッカー（任意）
+  stockName?: string;                 // 銘柄名（任意）
+  shares: number;                     // 保有株数（必須）
+  averagePrice: number;               // 平均取得単価（必須）
+  currentValue?: number;              // 現在評価額（任意・手入力）
+  currency: 'JPY' | 'USD';           // 通貨（市場で決定）
+}
+
+// 投資信託 / ETF
+export interface FundAsset extends BaseAsset {
+  category: 'fund';
+  fundType?: 'mutualFund' | 'etf';   // 種類
+  fundName: string;                   // 商品名（必須）
+  quantity: number;                   // 保有数量（必須）
+  averagePrice?: number;              // 平均取得単価（任意）
+  currentValue?: number;              // 現在評価額（任意・手入力）
+}
+
+// 暗号資産
+export interface CryptoAsset extends BaseAsset {
+  category: 'crypto';
+  cryptoCurrency?: string;            // 通貨（BTC/ETH/SOL等）
+  quantity: number;                   // 保有数量（必須）
+  averagePrice?: number;              // 平均取得単価（任意）
+  currentValue?: number;              // 現在評価額（任意・手入力）
+  exchange?: string;                  // 取引所（任意）
+}
+
+// 持ち株（ESPP / RSU / ストックオプション）
+export interface EmployeeStockAsset extends BaseAsset {
+  category: 'employeeStock';
+  employeeStockType?: 'espp' | 'rsu' | 'stockOption'; // 種別
+  companyName: string;                                 // 会社名（必須）
+  ticker?: string;                                     // ティッカー（任意）
+  sharesOrRights: number;                             // 保有株数 or 権利数（必須）
+  averagePriceOrStrikePrice: number;                  // 平均取得単価 or 行使価格（必須）
+  currentValue?: number;                               // 現在評価額（任意・手入力）
+  esppDiscountRate?: number;                           // ESPP割引率（ESPPのみ任意）
+  esppCompanyContribution?: number;                    // ESPP会社補助（ESPPのみ任意）
+}
+
+export type Asset = DepositAsset | StockAsset | FundAsset | CryptoAsset | EmployeeStockAsset;
 
 // ========== Expenses ==========
 export type ExpenseType = 'fixed' | 'variable';
@@ -28,12 +80,26 @@ export interface Expense {
 }
 
 // ========== Income ==========
+export type IncomeType = 'salary' | 'bonus' | 'other';
+
 export interface Income {
   id: string;
+  type: IncomeType;              // 種類（月給/賞与/その他）
   source: string;                // "給与", "副業", "配当"
   amount: number;
   date: Date;
   createdAt: Date;
+}
+
+// ========== Investment Plan ==========
+export interface InvestmentPlan {
+  id: string;
+  assetCategory: AssetCategory;  // どのカテゴリに積み立てるか
+  categoryName: string;          // カテゴリ表示名（deposit→"現金・預金"等）
+  monthlyAmount: number;         // 毎月の積立額
+  expectedReturn?: number;       // 期待リターン（年率%、ユーザー手入力）
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // ========== Daily Snapshot ==========
@@ -43,10 +109,11 @@ export interface DailySnapshot {
   totalAssets: number;           // その日の総資産
   cashRatio: number;             // 流動性比率
   assetBreakdown: {              // カテゴリ別内訳
-    cash: number;
-    investment: number;
-    realEstate: number;
-    other: number;
+    deposit: number;
+    stock: number;
+    fund: number;
+    crypto: number;
+    employeeStock: number;
   };
   dailyChange: number;           // 前日比差分
   createdAt: Date;               // スナップショット作成日時
@@ -58,6 +125,7 @@ export interface AppSettings {
   currency: 'JPY' | 'USD';
   theme: 'light' | 'dark';
   monthlyIncomeTarget: number;   // 月間収入目標（貯蓄率計算用）
+  annualRaiseRate?: number;      // 将来昇給率（年率%、Forecast画面用）
 }
 
 // ========== KPI Types ==========
@@ -68,9 +136,35 @@ export interface KPIData {
   liquidityRatio: number;        // 流動性比率 (%)
   monthlyExpenses: number;       // 月間総支出
   assetAllocation: {             // 資産構成比
-    cash: number;
-    investment: number;
-    realEstate: number;
-    other: number;
+    deposit: number;
+    stock: number;
+    fund: number;
+    crypto: number;
+    employeeStock: number;
   };
 }
+
+// ========== Helper Types ==========
+// カテゴリ表示名マッピング
+export const AssetCategoryLabels: Record<AssetCategory, string> = {
+  deposit: '現金・預金',
+  stock: '株式',
+  fund: '投資信託 / ETF',
+  crypto: '暗号資産',
+  employeeStock: '持ち株',
+};
+
+// 金融機関リスト
+export const FinancialInstitutions = [
+  '三菱UFJ',
+  '三井住友',
+  'みずほ',
+  'りそな',
+  'ゆうちょ',
+  '楽天銀行',
+  '住信SBI',
+  'PayPay銀行',
+  'その他',
+] as const;
+
+export type FinancialInstitution = typeof FinancialInstitutions[number];

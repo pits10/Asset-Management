@@ -2,35 +2,31 @@
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import type { AssetCategory } from '@/types';
+import { AssetCategoryLabels } from '@/types';
 
 interface AssetDonutChartProps {
   data: {
-    cash: number;
-    investment: number;
-    realEstate: number;
-    other: number;
+    deposit: number;
+    stock: number;
+    fund: number;
+    crypto: number;
+    employeeStock: number;
   };
 }
 
 const COLORS: Record<AssetCategory, string> = {
-  cash: '#3b82f6',      // blue
-  investment: '#22c55e', // green
-  realEstate: '#a855f7', // purple
-  other: '#6b7280',      // gray
-};
-
-const LABELS: Record<AssetCategory, string> = {
-  cash: '現金・預金',
-  investment: '投資',
-  realEstate: '不動産',
-  other: 'その他',
+  deposit: '#3b82f6',      // blue
+  stock: '#22c55e',        // green
+  fund: '#a855f7',         // purple
+  crypto: '#f59e0b',       // amber
+  employeeStock: '#ef4444', // red
 };
 
 export function AssetDonutChart({ data }: AssetDonutChartProps) {
   const chartData = Object.entries(data)
     .filter(([, value]) => value > 0)
     .map(([key, value]) => ({
-      name: LABELS[key as AssetCategory],
+      name: AssetCategoryLabels[key as AssetCategory],
       value,
       category: key as AssetCategory,
     }));

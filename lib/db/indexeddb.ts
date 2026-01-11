@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { db } from './schema';
-import type { Asset, Expense, Income, DailySnapshot, AppSettings } from '@/types';
+import type { Asset, Expense, Income, DailySnapshot, AppSettings, InvestmentPlan } from '@/types';
 
 // ========== Assets CRUD ==========
 export const assetsDB = {
@@ -174,6 +174,45 @@ export const settingsDB = {
       currency: 'JPY',
       theme: 'dark',
       monthlyIncomeTarget: 300000, // デフォルト30万円
+      annualRaiseRate: 0, // デフォルト0%
     };
+  },
+};
+
+// ========== Investment Plans CRUD ==========
+export const investmentPlansDB = {
+  async getAll(): Promise<InvestmentPlan[]> {
+    return await db.investmentPlans.toArray();
+  },
+
+  async getById(id: string): Promise<InvestmentPlan | undefined> {
+    return await db.investmentPlans.get(id);
+  },
+
+  async create(plan: Omit<InvestmentPlan, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    const id = uuidv4();
+    const now = new Date();
+    await db.investmentPlans.add({
+      ...plan,
+      id,
+      createdAt: now,
+      updatedAt: now,
+    });
+    return id;
+  },
+
+  async update(id: string, updates: Partial<Omit<InvestmentPlan, 'id' | 'createdAt'>>): Promise<void> {
+    await db.investmentPlans.update(id, {
+      ...updates,
+      updatedAt: new Date(),
+    });
+  },
+
+  async delete(id: string): Promise<void> {
+    await db.investmentPlans.delete(id);
+  },
+
+  async getByCategory(category: InvestmentPlan['assetCategory']): Promise<InvestmentPlan[]> {
+    return await db.investmentPlans.where('assetCategory').equals(category).toArray();
   },
 };
