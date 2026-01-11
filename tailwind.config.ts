@@ -11,10 +11,12 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: [
+          'Inter',
           'system-ui',
           '-apple-system',
           'BlinkMacSystemFont',
           '"Segoe UI"',
+          '"SF Pro Display"',
           'Roboto',
           '"Helvetica Neue"',
           'Arial',
@@ -22,15 +24,18 @@ const config: Config = {
         ],
       },
       colors: {
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        background: {
+          DEFAULT: "hsl(var(--background))",
+          secondary: "hsl(var(--background-secondary))",
+        },
+        foreground: {
+          DEFAULT: "hsl(var(--foreground))",
+          secondary: "hsl(var(--foreground-secondary))",
+          muted: "hsl(var(--foreground-muted))",
+        },
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
-        },
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
         },
         primary: {
           DEFAULT: "hsl(var(--primary))",
@@ -47,6 +52,9 @@ const config: Config = {
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
+          growth: "hsl(var(--accent-growth))",
+          warning: "hsl(var(--accent-warning))",
+          negative: "hsl(var(--accent-negative))",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
@@ -65,8 +73,11 @@ const config: Config = {
       },
       borderRadius: {
         lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        md: "calc(var(--radius) - 4px)",
+        sm: "var(--radius-sm)",
+      },
+      letterSpacing: {
+        tighter: '-0.02em',
       },
     },
   },
